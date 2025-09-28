@@ -48,6 +48,10 @@
         <a href="{{ url_for('ver_archivo', filename=reporte) }}" class="btn btn-success" target="_blank">
             Ver Reporte HTML
         </a>
+        <!-- Ver reporte del TDA -->
+        <a href="{{ url_for('reporte_tda', numero_plan=plan_numero) }}" class="btn btn-info">
+            Ver reporte de TDA (Graphviz)
+        </a>
     </div>
 
     <div style="margin-top: 2rem; text-align: center;">

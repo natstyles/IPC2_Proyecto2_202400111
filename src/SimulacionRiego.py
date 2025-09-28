@@ -2,6 +2,8 @@ from .ListaSimpleEnlazada import ListaEnlazada
 import xml.etree.ElementTree as ET
 from flask import render_template, Response
 from io import BytesIO
+from graphviz import Digraph
+import os
 
 class SimulacionRiego:
     def __init__(self, plan_riego, invernadero):
@@ -94,14 +96,14 @@ class SimulacionRiego:
 
                     actual_dron_asignado = actual_dron_asignado.siguiente
 
-                # Guardamos todos los eventos ocurridos en este segundo
+                #Guardamos todos los eventos ocurridos en este segundo
                 if eventos_segundo:
                     self.linea_tiempo.append({
                         "segundo": self.segundo_actual,
                         "eventos": eventos_segundo
                     })
 
-                self.segundo_actual += 1  # Avanza el tiempo
+                self.segundo_actual += 1  #Avanza el tiempo
 
             actual_planta_a_regar = actual_planta_a_regar.siguiente
 
@@ -126,7 +128,7 @@ class SimulacionRiego:
 
         plan_elem = ET.SubElement(lista_planes_elem, "plan", {"nombre": nombre_plan})
 
-        # Calcular métricas globales
+        #Calcular métricas globales
         tiempo_total = max((tick["segundo"] for tick in self.linea_tiempo), default=0)
         agua_total = 0
         fertilizante_total = 0
@@ -138,7 +140,7 @@ class SimulacionRiego:
             fertilizante_total += dron.gramos_fertilizante_usados
             actual_dron = actual_dron.siguiente
 
-        # Insertar métricas
+        #Insertar métricas
         ET.SubElement(plan_elem, "tiempoOptimoSegundos").text = str(tiempo_total)
         ET.SubElement(plan_elem, "aguaRequeridaLitros").text = str(agua_total)
         ET.SubElement(plan_elem, "fertilizanteRequeridoGramos").text = str(fertilizante_total)
@@ -163,7 +165,7 @@ class SimulacionRiego:
                     "accion": evento["accion"]
                 })
 
-        # --- devolver como descarga en memoria (NO guardar en disco) ---
+        #devolver como descarga en memoria
         buffer = BytesIO()
         tree = ET.ElementTree(root)
         tree.write(buffer, encoding="utf-8", xml_declaration=True)
@@ -178,7 +180,7 @@ class SimulacionRiego:
 
 
     def generar_html_reporte(self, nombre_invernadero, nombre_plan, ruta_salida):
-        # métricas globales
+        #métricas globales
         tiempo_total = max((tick["segundo"] for tick in self.linea_tiempo), default=0)
         agua_total = 0
         fertilizante_total = 0
@@ -208,7 +210,7 @@ class SimulacionRiego:
 
         dron_nombres = [d["nombre"] for d in drones]
 
-        # --- mismo procesamiento de FIN que ya tenías ---
+        #mismo procesamiento de FIN
         ultimo_evento = {d: 0 for d in dron_nombres}
         for tick in self.linea_tiempo:
             for evento in tick["eventos"]:
@@ -241,8 +243,26 @@ class SimulacionRiego:
             linea_tiempo=self.linea_tiempo
         )
 
-        # --- este sí lo guardamos en disco ---
+        #este sí lo guardamos en disco
         with open(ruta_salida, "w", encoding="utf-8") as f:
             f.write(contenido)
 
         print(f"Reporte HTML generado en: {ruta_salida}")
+
+    def generar_reporte_tda(self, nombre_archivo):
+        import graphviz, os
+        dot = graphviz.Digraph()
+
+        # ejemplo sencillo: todas las plantas encoladas
+        actual = self.lista_plantas_a_regar.primero
+        while actual:
+            planta = actual.dato
+            dot.node(f"H{planta.hilera}-P{planta.posicion}", f"H{planta.hilera}-P{planta.posicion}")
+            if actual.siguiente:
+                sig = actual.siguiente.dato
+                dot.edge(f"H{planta.hilera}-P{planta.posicion}", f"H{sig.hilera}-P{sig.posicion}")
+            actual = actual.siguiente
+
+        ruta = os.path.join("uploads", nombre_archivo)
+        dot.render(ruta, format="png", cleanup=True)
+        return ruta + ".png"

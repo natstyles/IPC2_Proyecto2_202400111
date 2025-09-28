@@ -10,13 +10,14 @@ app.config["UPLOAD_FOLDER"] = "uploads"
 #Asegurar carpetas necesarias
 os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
 
-#Variable global para guardar la última simulación ejecutada
+#Variables globales para guardar la última simulación ejecutada
 ultima_simulacion = None
 ultimo_invernadero = None
 ultimo_plan = None
+ultimo_plan_numero = None
 
 def obtener_drones_lista(lista_drones):
-    """Convierte lista enlazada de drones a lista normal"""
+    #Convierte lista enlazada de drones a lista normal
     drones = []
     actual = lista_drones.primero
     while actual:
@@ -25,7 +26,7 @@ def obtener_drones_lista(lista_drones):
     return drones
 
 def obtener_pasos_lista(lista_pasos):
-    """Convierte lista enlazada de pasos a lista normal"""
+    #Convierte lista enlazada de pasos a lista normal
     pasos = []
     actual = lista_pasos.primero
     while actual:
@@ -41,11 +42,11 @@ def inicio():
 
 @app.route("/simulacion", methods=["GET", "POST"])
 def simulacion():
-    global ultima_simulacion, ultimo_invernadero, ultimo_plan
+    global ultima_simulacion, ultimo_invernadero, ultimo_plan, ultimo_plan_numero
 
     if request.method == "POST":
         archivo = request.files["archivo"]
-        numero_plan = int(request.form["plan"])  #Capturamos el plan elegido (1 o 2 por ahora)
+        numero_plan = int(request.form["plan"]) #Capturamos el plan elegido
 
         if archivo.filename == "":
             return render_template("error.html", titulo="Error", mensaje="No se seleccionó archivo")
@@ -75,6 +76,7 @@ def simulacion():
         ultima_simulacion = simulacion
         ultimo_invernadero = invernadero
         ultimo_plan = plan
+        ultimo_plan_numero = numero_plan
 
         #Generar reporte HTML y guardarlo
         reporte_nombre = f"Reporte_plan{numero_plan}.html"
@@ -99,7 +101,8 @@ def simulacion():
             plan_nombre=plan.nombre,
             tiempo_total=simulacion.segundo_actual - 1,
             reporte=reporte_nombre,
-            drones=drones
+            drones=drones,
+            plan_numero=numero_plan
         )
 
     #Si es GET → mostrar formulario
@@ -108,13 +111,13 @@ def simulacion():
 
 @app.route("/uploads/<path:filename>")
 def ver_archivo(filename):
-    """Muestra el archivo directamente en el navegador (ej: HTML)"""
+    #Muestra el archivo directamente en el navegador
     return send_from_directory(app.config["UPLOAD_FOLDER"], filename)
 
 
 @app.route("/descargar_xml")
 def descargar_xml():
-    """Genera el XML en memoria y lo envía al navegador"""
+    #Genera el XML en memoria y lo envía al navegador
     if ultima_simulacion and ultimo_invernadero and ultimo_plan:
         return ultima_simulacion.generar_xml_salida(ultimo_invernadero.nombre, ultimo_plan.nombre)
     else:
@@ -123,8 +126,20 @@ def descargar_xml():
 
 @app.route("/descargar/<path:filename>")
 def descargar_archivo(filename):
-    """Fuerza descarga de archivos guardados (ej: HTML)"""
+    #Fuerza descarga de archivos guardados
     return send_from_directory(app.config["UPLOAD_FOLDER"], filename, as_attachment=True)
+
+@app.route("/tda/<int:numero_plan>")
+def reporte_tda(numero_plan):
+    global ultima_simulacion, ultimo_invernadero, ultimo_plan, ultimo_plan_numero
+
+    if not ultima_simulacion or not ultimo_invernadero or not ultimo_plan:
+        return render_template("error.html", titulo="Error", mensaje="No hay simulación cargada.")
+
+    # Usamos la última simulación ya ejecutada
+    ruta_img = ultima_simulacion.generar_reporte_tda(f"tda_plan{numero_plan}.png")
+
+    return render_template("reporte_tda.html", imagen=os.path.basename(ruta_img))
 
 
 #Ejecutar servidor
