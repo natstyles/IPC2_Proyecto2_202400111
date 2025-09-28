@@ -35,7 +35,7 @@ class Cola:
         return valor
 
     def ver_frente(self):
-        #Muestra el valor al frente de la cola sin quitarlo"""
+        #Muestra el valor al frente de la cola sin quitarlo
         if self.esta_vacia():
             return None
         return self.frente.valor

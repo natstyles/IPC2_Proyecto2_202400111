@@ -61,7 +61,7 @@ class ListaEnlazada:
         return dato
 
     def buscar_indice(self, id_dron):
-        # Busca un dron por su id y devuelve el índice, o -1 si no lo encuentra
+        #Busca un dron por su id y devuelve el índice, o -1 si no lo encuentra
         actual = self.primero
         indice = 0
         while actual:

@@ -7,7 +7,7 @@ class Matriz:
         self.num_columnas = num_columnas
         self.matriz = ListaEnlazada()
 
-        # Crear matriz con valores nulos (se llenará con plantas reales después)
+        #Crear matriz con valores nulos (se llenará con plantas reales después)
         for i in range(1, num_filas + 1):
             fila = ListaEnlazada()
             for j in range(1, num_columnas + 1):
