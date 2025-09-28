@@ -1,0 +1,84 @@
+/* ==== Reset básico ==== */
+body, h1, h2, h3, h4, h5, h6, p, ul {
+    margin: 0;
+    padding: 0;
+}
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f9f9f9;
+    color: #333;
+}
+
+/* ==== Layout general ==== */
+.container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+/* ==== Header y navegación ==== */
+header {
+    background: linear-gradient(90deg, #667eea, #764ba2);
+    padding: 15px 0;
+    color: white;
+}
+header h1 {
+    display: inline;
+    margin-right: 20px;
+    font-size: 1.5rem;
+}
+header nav a {
+    color: white;
+    margin-right: 15px;
+    text-decoration: none;
+    font-weight: bold;
+}
+header nav a:hover {
+    text-decoration: underline;
+}
+
+/* ==== Títulos ==== */
+.page-title {
+    margin: 20px 0;
+    color: #667eea;
+    font-size: 1.4rem;
+}
+
+/* ==== Botones ==== */
+.btn {
+    display: inline-block;
+    padding: 10px 20px;
+    background-color: #667eea;
+    color: white;
+    text-decoration: none;
+    border-radius: 5px;
+    transition: background 0.3s;
+}
+.btn:hover {
+    background-color: #5563c1;
+}
+
+/* ==== Tarjetas ==== */
+.card {
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+/* ==== Tablas (si quieres mostrar pasos de drones) ==== */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 20px 0;
+}
+table th, table td {
+    border: 1px solid #ddd;
+    padding: 10px;
+    text-align: center;
+}
+table th {
+    background-color: #667eea;
+    color: white;
+}

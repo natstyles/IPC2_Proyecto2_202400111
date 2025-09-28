@@ -1,4 +1,4 @@
-from Matriz import Matriz
+from .Matriz import Matriz
 
 class Invernadero:
     def __init__(self, nombre, numero_hileras, plantas_x_hilera, lista_plantas, lista_drones_asignados, lista_planes_riego):

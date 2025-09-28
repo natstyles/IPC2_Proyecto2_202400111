@@ -1,5 +1,5 @@
-from Sistema import Sistema
-from SimulacionRiego import SimulacionRiego
+from .Sistema import Sistema
+from .SimulacionRiego import SimulacionRiego
 
 def main():
     sistema = Sistema()

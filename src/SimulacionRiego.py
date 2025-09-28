@@ -1,5 +1,5 @@
-from xml.dom.minidom import Document
-from ListaSimpleEnlazada import ListaEnlazada
+from .ListaSimpleEnlazada import ListaEnlazada
+import xml.etree.ElementTree as ET
 
 class SimulacionRiego:
     def __init__(self, plan_riego, invernadero):
@@ -7,7 +7,9 @@ class SimulacionRiego:
         self.matriz_plantas = invernadero.matriz_plantas
         self.lista_drones_asignados = invernadero.lista_drones_asignados
         self.lista_plantas_a_regar = ListaEnlazada()
-        self.tiempo_total = 0  # ⏱ Contador de tiempo en segundos
+
+        # Nueva estructura: línea de tiempo global
+        self.linea_tiempo = []  # Lista de dicts: {"segundo": n, "eventos": [...]}
 
     def inicializar_datos_drones(self):
         actual_dron_asignado = self.lista_drones_asignados.primero
@@ -32,7 +34,7 @@ class SimulacionRiego:
             planta = actual_planta.dato
             actual_dron = self.lista_drones_asignados.primero
             while actual_dron:
-                dron =  actual_dron.dato
+                dron = actual_dron.dato
                 if planta.hilera == dron.hilera_asignada:
                     dron.plantas_a_regar.encolar(planta)
                 actual_dron = actual_dron.siguiente
@@ -40,6 +42,7 @@ class SimulacionRiego:
 
     def simular(self):
         actual_planta_a_regar = self.lista_plantas_a_regar.primero
+        self.segundo_actual = 1  # Contador global de tiempo
 
         while actual_planta_a_regar:
             planta_a_regar = actual_planta_a_regar.dato
@@ -47,6 +50,7 @@ class SimulacionRiego:
 
             while planta_no_regada:
                 actual_dron_asignado = self.lista_drones_asignados.primero
+                eventos_segundo = []  # Acciones de todos los drones en este segundo
 
                 while actual_dron_asignado:
                     dron = actual_dron_asignado.dato
@@ -67,18 +71,22 @@ class SimulacionRiego:
                         if posicion_actual < posicion_objetivo:
                             paso = dron.mover_adelante()
                             dron.pasos.insertar(paso)
+                            eventos_segundo.append({"dron": dron.nombre, "accion": paso})
                         #Mover atras
                         elif posicion_actual > posicion_objetivo:
                             paso = dron.mover_atras()
                             dron.pasos.insertar(paso)
+                            eventos_segundo.append({"dron": dron.nombre, "accion": paso})
                         #Esperar
                         elif posicion_actual == posicion_objetivo and planta_a_regar.hilera != dron.hilera_asignada:
                             paso = dron.esperar()
                             dron.pasos.insertar(paso)
+                            eventos_segundo.append({"dron": dron.nombre, "accion": paso})
                         #Regar
                         elif posicion_actual == posicion_objetivo and planta_a_regar.hilera == dron.hilera_asignada:
                             paso = dron.regar(planta_a_regar)
                             dron.pasos.insertar(paso)
+                            eventos_segundo.append({"dron": dron.nombre, "accion": paso})
                             planta_no_regada = False
                             dron.posicion_objetivo = None
                     else:
@@ -86,8 +94,14 @@ class SimulacionRiego:
 
                     actual_dron_asignado = actual_dron_asignado.siguiente
 
-                # Cada ciclo de intento de riego cuenta como 1 segundo
-                self.tiempo_total += 1
+                # Guardamos todos los eventos ocurridos en este segundo
+                if eventos_segundo:
+                    self.linea_tiempo.append({
+                        "segundo": self.segundo_actual,
+                        "eventos": eventos_segundo
+                    })
+
+                self.segundo_actual += 1  # Avanza el tiempo
 
             actual_planta_a_regar = actual_planta_a_regar.siguiente
 
@@ -101,102 +115,53 @@ class SimulacionRiego:
                 paso = actual_paso.dato
                 print(paso)
                 actual_paso = actual_paso.siguiente
-            actual_dron = actual_dron.siguiente  
+            actual_dron = actual_dron.siguiente
 
-    def imprimir_resumen(self):
-        print("\n===== Resumen de la Simulación =====")
-        print(f"Tiempo óptimo: {self.tiempo_total} segundos")
+    def generar_xml_salida(self, nombre_invernadero, nombre_plan, ruta_salida):
+        root = ET.Element("datosSalida")
+        lista_invernaderos_elem = ET.SubElement(root, "listaInvernaderos")
 
-        total_agua = 0
-        total_fertilizante = 0
+        invernadero_elem = ET.SubElement(lista_invernaderos_elem, "invernadero", {"nombre": nombre_invernadero})
+        lista_planes_elem = ET.SubElement(invernadero_elem, "listaPlanes")
+
+        plan_elem = ET.SubElement(lista_planes_elem, "plan", {"nombre": nombre_plan})
+
+        # Calcular métricas globales
+        tiempo_total = max((tick["segundo"] for tick in self.linea_tiempo), default=0)
+        agua_total = 0
+        fertilizante_total = 0
 
         actual_dron = self.lista_drones_asignados.primero
         while actual_dron:
             dron = actual_dron.dato
-            print(f"Dron {dron.nombre} → Agua usada: {dron.litros_agua_usados} L, Fertilizante usado: {dron.gramos_fertilizante_usados} g")
-            total_agua += dron.litros_agua_usados
-            total_fertilizante += dron.gramos_fertilizante_usados
+            agua_total += dron.litros_agua_usados
+            fertilizante_total += dron.gramos_fertilizante_usados
             actual_dron = actual_dron.siguiente
 
-        print(f"TOTAL Agua: {total_agua} L")
-        print(f"TOTAL Fertilizante: {total_fertilizante} g")
-        print("=====================================")
+        # Insertar métricas
+        ET.SubElement(plan_elem, "tiempoOptimoSegundos").text = str(tiempo_total)
+        ET.SubElement(plan_elem, "aguaRequeridaLitros").text = str(agua_total)
+        ET.SubElement(plan_elem, "fertilizanteRequeridoGramos").text = str(fertilizante_total)
 
-    def generar_xml_salida(self, nombre_invernadero, nombre_plan, ruta_salida="salida.xml"):
-        doc = Document()
-
-        # Nodo raíz
-        datos_salida = doc.createElement("datosSalida")
-        doc.appendChild(datos_salida)
-
-        # Nodo invernadero
-        invernadero_node = doc.createElement("invernadero")
-        invernadero_node.setAttribute("nombre", nombre_invernadero)
-        datos_salida.appendChild(invernadero_node)
-
-        # Nodo plan
-        plan_node = doc.createElement("plan")
-        plan_node.setAttribute("nombre", nombre_plan)
-        invernadero_node.appendChild(plan_node)
-
-        # Tiempo total
-        tiempo_node = doc.createElement("tiempoTotal")
-        tiempo_node.appendChild(doc.createTextNode(str(self.tiempo_total)))
-        plan_node.appendChild(tiempo_node)
-
-        # Totales globales
-        total_agua = 0
-        total_fertilizante = 0
-
-        # Nodo drones
-        drones_node = doc.createElement("drones")
-        plan_node.appendChild(drones_node)
-
+        eficiencia_elem = ET.SubElement(plan_elem, "eficienciaDronesRegadores")
         actual_dron = self.lista_drones_asignados.primero
         while actual_dron:
             dron = actual_dron.dato
-            total_agua += dron.litros_agua_usados
-            total_fertilizante += dron.gramos_fertilizante_usados
-
-            dron_node = doc.createElement("dron")
-            dron_node.setAttribute("nombre", dron.nombre)
-            dron_node.setAttribute("agua", str(dron.litros_agua_usados))
-            dron_node.setAttribute("fertilizante", str(dron.gramos_fertilizante_usados))
-            drones_node.appendChild(dron_node)
-
+            ET.SubElement(eficiencia_elem, "dron", {
+                "nombre": dron.nombre,
+                "litrosAgua": str(dron.litros_agua_usados),
+                "gramosFertilizante": str(dron.gramos_fertilizante_usados)
+            })
             actual_dron = actual_dron.siguiente
 
-        # Agua total
-        agua_node = doc.createElement("aguaTotal")
-        agua_node.appendChild(doc.createTextNode(str(total_agua)))
-        plan_node.appendChild(agua_node)
+        instrucciones_elem = ET.SubElement(plan_elem, "instrucciones")
+        for tick in self.linea_tiempo:
+            tiempo_elem = ET.SubElement(instrucciones_elem, "tiempo", {"segundos": str(tick["segundo"])})
+            for evento in tick["eventos"]:
+                ET.SubElement(tiempo_elem, "dron", {
+                    "nombre": evento["dron"],
+                    "accion": evento["accion"]
+                })
 
-        # Fertilizante total
-        ferti_node = doc.createElement("fertilizanteTotal")
-        ferti_node.appendChild(doc.createTextNode(str(total_fertilizante)))
-        plan_node.appendChild(ferti_node)
-
-        # Instrucciones por tiempo
-        instrucciones_node = doc.createElement("instrucciones")
-        plan_node.appendChild(instrucciones_node)
-
-        tiempo = 1
-        actual_dron = self.lista_drones_asignados.primero
-        while actual_dron:
-            dron = actual_dron.dato
-            actual_paso = dron.pasos.primero
-            while actual_paso:
-                paso = actual_paso.dato
-                paso_node = doc.createElement("paso")
-                paso_node.setAttribute("tiempo", str(tiempo))
-                paso_node.appendChild(doc.createTextNode(f"{dron.nombre} {paso}"))
-                instrucciones_node.appendChild(paso_node)
-                actual_paso = actual_paso.siguiente
-                tiempo += 1
-            actual_dron = actual_dron.siguiente
-
-        # Guardar en archivo
-        with open(ruta_salida, "w", encoding="utf-8") as f:
-            f.write(doc.toprettyxml(indent="  "))
-
-        print(f"✅ Archivo XML generado en: {ruta_salida}")
+        tree = ET.ElementTree(root)
+        tree.write(ruta_salida, encoding="utf-8", xml_declaration=True)

@@ -1,5 +1,5 @@
-from Cola import Cola
-from ListaSimpleEnlazada import ListaEnlazada
+from .Cola import Cola
+from .ListaSimpleEnlazada import ListaEnlazada
 
 class Dron:
     def __init__(self, id, nombre, hilera_asignada, posicion_actual, posicion_objetivo, litros_agua_usados, gramos_fertilizante_usados, plantas_a_regar, pasos):

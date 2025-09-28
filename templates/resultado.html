@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+
+{% block contenido %}
+<div class="resultado-container">
+    <h2>Resultado de Simulación</h2>
+
+    <p><strong>Invernadero:</strong> {{ invernadero.nombre }}</p>
+    <p><strong>Plan de riego:</strong> {{ plan_nombre }}</p>
+    <p><strong>Tiempo total:</strong> {{ tiempo_total }} segundos</p>
+
+    <h3>Drones</h3>
+
+    {% for dron in drones %}
+        <div class="card">
+            <h4>{{ dron.nombre }} (Hilera {{ dron.hilera_asignada }})</h4>
+            <p><strong>Agua usada:</strong> {{ dron.agua_usada }} L</p>
+            <p><strong>Fertilizante usado:</strong> {{ dron.fertilizante_usado }} g</p>
+            <p><strong>Pasos ejecutados:</strong></p>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Acción</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for paso in dron.pasos %}
+                        <tr>
+                            <td>{{ loop.index }}</td>
+                            <td>{{ paso }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <p style="color:#666; text-align:center;">No hay drones registrados.</p>
+    {% endfor %}
+
+    <div class="card p-3 mt-3">
+      <h5>Archivo de salida</h5>
+      <a href="{{ url_for('descargar', filename=salida) }}" class="btn btn-primary">
+        Descargar {{ salida }}
+      </a>
+    </div>
+
+    <div style="margin-top: 2rem; text-align: center;">
+        <a href="{{ url_for('inicio') }}" class="btn" style="background-color: #6c757d;">
+            Volver al inicio
+        </a>
+    </div>
+</div>
+{% endblock %}

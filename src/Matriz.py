@@ -1,5 +1,5 @@
-from ListaSimpleEnlazada import ListaEnlazada
-from Planta import Planta
+from .ListaSimpleEnlazada import ListaEnlazada
+from .Planta import Planta
 
 class Matriz:
     def __init__(self, num_filas, num_columnas):

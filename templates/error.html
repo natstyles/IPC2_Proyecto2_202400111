@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+
+{% block contenido %}
+    <div class="card" style="text-align:center;">
+        <h3 style="color:red;">Error</h3>
+        <p>{{ mensaje }}</p>
+        <a href="{{ url_for('inicio') }}" class="btn">Volver</a>
+    </div>
+{% endblock %}

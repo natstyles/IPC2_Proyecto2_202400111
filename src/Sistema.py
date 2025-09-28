@@ -1,10 +1,10 @@
 from xml.dom.minidom import parse
-from Cola import Cola
-from ListaSimpleEnlazada import ListaEnlazada
-from Dron import Dron
-from Planta import Planta
-from PlanRiego import PlanRiego
-from Invernadero import Invernadero
+from .Cola import Cola
+from .ListaSimpleEnlazada import ListaEnlazada
+from .Dron import Dron
+from .Planta import Planta
+from .PlanRiego import PlanRiego
+from .Invernadero import Invernadero
 
 class Sistema:
     def __init__(self):
@@ -13,7 +13,7 @@ class Sistema:
     def leer_archivo(self, ruta_archivo):
         dom = parse(ruta_archivo)
 
-        #DRONES
+        # DRONES
         lista_drones = ListaEnlazada()
         drones = dom.getElementsByTagName('dron')
         for dron in drones:
@@ -22,13 +22,14 @@ class Sistema:
             nuevo_dron = Dron(id, nombre, None, 0, None, 0, 0, Cola(), ListaEnlazada())
             lista_drones.insertar(nuevo_dron)
 
-        #INVERNADEROS
+        # INVERNADEROS
         lista_invernaderos = dom.getElementsByTagName('invernadero')
         for invernadero in lista_invernaderos:
             nombre_invernadero = invernadero.getAttribute('nombre')
             numero_hileras = int(invernadero.getElementsByTagName('numeroHileras')[0].firstChild.data)
             plantas_x_hilera = int(invernadero.getElementsByTagName('plantasXhilera')[0].firstChild.data)
 
+            # PLANTAS
             lista_plantas = ListaEnlazada()
             plantas = invernadero.getElementsByTagName('planta')
             for planta in plantas:
@@ -41,6 +42,7 @@ class Sistema:
                 nueva_planta = Planta(hilera, posicion, litros_agua, gramos_fertilizante, tipo_planta)
                 lista_plantas.insertar(nueva_planta)
 
+            # DRONES ASIGNADOS
             lista_drones_asignados = ListaEnlazada()
             asignacion_drones = invernadero.getElementsByTagName('dron')
             for dron in asignacion_drones:
@@ -53,6 +55,7 @@ class Sistema:
 
                 lista_drones_asignados.insertar(dron)
 
+            # PLANES DE RIEGO
             lista_planes_riego = ListaEnlazada()
             planes_riego = invernadero.getElementsByTagName('plan')
             for plan_riego in planes_riego:
@@ -61,7 +64,15 @@ class Sistema:
                 nuevo_plan_riego = PlanRiego(nombre, secuencia_ubicacion_riego)
                 lista_planes_riego.insertar(nuevo_plan_riego)
 
-            nuevo_invernadero = Invernadero(nombre_invernadero, numero_hileras, plantas_x_hilera, lista_plantas, lista_drones_asignados, lista_planes_riego)
+            # CREAR INVERNADERO
+            nuevo_invernadero = Invernadero(
+                nombre_invernadero,
+                numero_hileras,
+                plantas_x_hilera,
+                lista_plantas,
+                lista_drones_asignados,
+                lista_planes_riego
+            )
             nuevo_invernadero.crear_matrices()
 
             self.lista_invernaderos.insertar(nuevo_invernadero)
