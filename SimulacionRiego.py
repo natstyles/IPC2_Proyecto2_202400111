@@ -1,3 +1,4 @@
+from xml.dom.minidom import Document
 from ListaSimpleEnlazada import ListaEnlazada
 
 class SimulacionRiego:
@@ -6,6 +7,7 @@ class SimulacionRiego:
         self.matriz_plantas = invernadero.matriz_plantas
         self.lista_drones_asignados = invernadero.lista_drones_asignados
         self.lista_plantas_a_regar = ListaEnlazada()
+        self.tiempo_total = 0  # ⏱ Contador de tiempo en segundos
 
     def inicializar_datos_drones(self):
         actual_dron_asignado = self.lista_drones_asignados.primero
@@ -84,6 +86,9 @@ class SimulacionRiego:
 
                     actual_dron_asignado = actual_dron_asignado.siguiente
 
+                # Cada ciclo de intento de riego cuenta como 1 segundo
+                self.tiempo_total += 1
+
             actual_planta_a_regar = actual_planta_a_regar.siguiente
 
     def imprimir_pasos(self):
@@ -96,4 +101,102 @@ class SimulacionRiego:
                 paso = actual_paso.dato
                 print(paso)
                 actual_paso = actual_paso.siguiente
-            actual_dron = actual_dron.siguiente 
+            actual_dron = actual_dron.siguiente  
+
+    def imprimir_resumen(self):
+        print("\n===== Resumen de la Simulación =====")
+        print(f"Tiempo óptimo: {self.tiempo_total} segundos")
+
+        total_agua = 0
+        total_fertilizante = 0
+
+        actual_dron = self.lista_drones_asignados.primero
+        while actual_dron:
+            dron = actual_dron.dato
+            print(f"Dron {dron.nombre} → Agua usada: {dron.litros_agua_usados} L, Fertilizante usado: {dron.gramos_fertilizante_usados} g")
+            total_agua += dron.litros_agua_usados
+            total_fertilizante += dron.gramos_fertilizante_usados
+            actual_dron = actual_dron.siguiente
+
+        print(f"TOTAL Agua: {total_agua} L")
+        print(f"TOTAL Fertilizante: {total_fertilizante} g")
+        print("=====================================")
+
+    def generar_xml_salida(self, nombre_invernadero, nombre_plan, ruta_salida="salida.xml"):
+        doc = Document()
+
+        # Nodo raíz
+        datos_salida = doc.createElement("datosSalida")
+        doc.appendChild(datos_salida)
+
+        # Nodo invernadero
+        invernadero_node = doc.createElement("invernadero")
+        invernadero_node.setAttribute("nombre", nombre_invernadero)
+        datos_salida.appendChild(invernadero_node)
+
+        # Nodo plan
+        plan_node = doc.createElement("plan")
+        plan_node.setAttribute("nombre", nombre_plan)
+        invernadero_node.appendChild(plan_node)
+
+        # Tiempo total
+        tiempo_node = doc.createElement("tiempoTotal")
+        tiempo_node.appendChild(doc.createTextNode(str(self.tiempo_total)))
+        plan_node.appendChild(tiempo_node)
+
+        # Totales globales
+        total_agua = 0
+        total_fertilizante = 0
+
+        # Nodo drones
+        drones_node = doc.createElement("drones")
+        plan_node.appendChild(drones_node)
+
+        actual_dron = self.lista_drones_asignados.primero
+        while actual_dron:
+            dron = actual_dron.dato
+            total_agua += dron.litros_agua_usados
+            total_fertilizante += dron.gramos_fertilizante_usados
+
+            dron_node = doc.createElement("dron")
+            dron_node.setAttribute("nombre", dron.nombre)
+            dron_node.setAttribute("agua", str(dron.litros_agua_usados))
+            dron_node.setAttribute("fertilizante", str(dron.gramos_fertilizante_usados))
+            drones_node.appendChild(dron_node)
+
+            actual_dron = actual_dron.siguiente
+
+        # Agua total
+        agua_node = doc.createElement("aguaTotal")
+        agua_node.appendChild(doc.createTextNode(str(total_agua)))
+        plan_node.appendChild(agua_node)
+
+        # Fertilizante total
+        ferti_node = doc.createElement("fertilizanteTotal")
+        ferti_node.appendChild(doc.createTextNode(str(total_fertilizante)))
+        plan_node.appendChild(ferti_node)
+
+        # Instrucciones por tiempo
+        instrucciones_node = doc.createElement("instrucciones")
+        plan_node.appendChild(instrucciones_node)
+
+        tiempo = 1
+        actual_dron = self.lista_drones_asignados.primero
+        while actual_dron:
+            dron = actual_dron.dato
+            actual_paso = dron.pasos.primero
+            while actual_paso:
+                paso = actual_paso.dato
+                paso_node = doc.createElement("paso")
+                paso_node.setAttribute("tiempo", str(tiempo))
+                paso_node.appendChild(doc.createTextNode(f"{dron.nombre} {paso}"))
+                instrucciones_node.appendChild(paso_node)
+                actual_paso = actual_paso.siguiente
+                tiempo += 1
+            actual_dron = actual_dron.siguiente
+
+        # Guardar en archivo
+        with open(ruta_salida, "w", encoding="utf-8") as f:
+            f.write(doc.toprettyxml(indent="  "))
+
+        print(f"✅ Archivo XML generado en: {ruta_salida}")

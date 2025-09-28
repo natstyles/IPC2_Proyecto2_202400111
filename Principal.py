@@ -31,6 +31,8 @@ def main():
             simulacion.asignar_plantas_a_regar_a_dron()
             simulacion.simular()
             simulacion.imprimir_pasos()
+            simulacion.imprimir_resumen()
+            simulacion.generar_xml_salida(invernadero.nombre, plan_riego.nombre, "salida.xml")
 
         elif opcion == "3":
             print("Ejecucion finalizada")
