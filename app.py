@@ -10,6 +10,11 @@ app.config["UPLOAD_FOLDER"] = "uploads"
 #Asegurar carpetas necesarias
 os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
 
+#Variable global para guardar la última simulación ejecutada
+ultima_simulacion = None
+ultimo_invernadero = None
+ultimo_plan = None
+
 def obtener_drones_lista(lista_drones):
     """Convierte lista enlazada de drones a lista normal"""
     drones = []
@@ -36,6 +41,8 @@ def inicio():
 
 @app.route("/simulacion", methods=["GET", "POST"])
 def simulacion():
+    global ultima_simulacion, ultimo_invernadero, ultimo_plan
+
     if request.method == "POST":
         archivo = request.files["archivo"]
         numero_plan = int(request.form["plan"])  #Capturamos el plan elegido (1 o 2 por ahora)
@@ -64,12 +71,12 @@ def simulacion():
         simulacion.asignar_plantas_a_regar_a_dron()
         simulacion.simular()
 
-        #Guardamos archivo de salida
-        salida_nombre = f"salida_plan{numero_plan}.xml"
-        ruta_salida = os.path.join(app.config["UPLOAD_FOLDER"], salida_nombre)
-        simulacion.generar_xml_salida(invernadero.nombre, plan.nombre, ruta_salida)
+        #Guardar referencias globales para descarga posterior
+        ultima_simulacion = simulacion
+        ultimo_invernadero = invernadero
+        ultimo_plan = plan
 
-        #Generar reporte HTML
+        #Generar reporte HTML y guardarlo
         reporte_nombre = f"Reporte_plan{numero_plan}.html"
         ruta_reporte = os.path.join(app.config["UPLOAD_FOLDER"], reporte_nombre)
         simulacion.generar_html_reporte(invernadero.nombre, plan.nombre, ruta_reporte)
@@ -90,26 +97,36 @@ def simulacion():
             titulo="Resultado de Simulación",
             invernadero=invernadero,
             plan_nombre=plan.nombre,
-            tiempo_total = simulacion.segundo_actual - 1,
-            salida=salida_nombre,
-            reporte = reporte_nombre,
+            tiempo_total=simulacion.segundo_actual - 1,
+            reporte=reporte_nombre,
             drones=drones
         )
 
     #Si es GET → mostrar formulario
     return render_template("simulacion.html", titulo="Nueva Simulación")
 
+
 @app.route("/uploads/<path:filename>")
 def ver_archivo(filename):
-    """Muestra el archivo directamente en el navegador (ej: HTML, XML crudo)"""
+    """Muestra el archivo directamente en el navegador (ej: HTML)"""
     return send_from_directory(app.config["UPLOAD_FOLDER"], filename)
+
+
+@app.route("/descargar_xml")
+def descargar_xml():
+    """Genera el XML en memoria y lo envía al navegador"""
+    if ultima_simulacion and ultimo_invernadero and ultimo_plan:
+        return ultima_simulacion.generar_xml_salida(ultimo_invernadero.nombre, ultimo_plan.nombre)
+    else:
+        return render_template("error.html", titulo="Error", mensaje="No hay simulación disponible para exportar.")
+
 
 @app.route("/descargar/<path:filename>")
 def descargar_archivo(filename):
-    """Fuerza descarga del archivo (ej: XML)"""
+    """Fuerza descarga de archivos guardados (ej: HTML)"""
     return send_from_directory(app.config["UPLOAD_FOLDER"], filename, as_attachment=True)
 
-#Ejecutar servidor
 
+#Ejecutar servidor
 if __name__ == "__main__":
     app.run(debug=True)

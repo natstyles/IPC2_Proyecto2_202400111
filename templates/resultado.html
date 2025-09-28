@@ -41,8 +41,8 @@
     <div class="card p-3 mt-3">
         <h5>Archivos de salida</h5>
         <!-- Descargar XML -->
-        <a href="{{ url_for('descargar_archivo', filename=salida) }}" class="btn btn-primary">
-            Descargar {{ salida }}
+        <a href="{{ url_for('descargar_xml') }}" class="btn btn-success">
+            Descargar XML
         </a>
         <!-- Ver reporte en navegador -->
         <a href="{{ url_for('ver_archivo', filename=reporte) }}" class="btn btn-success" target="_blank">

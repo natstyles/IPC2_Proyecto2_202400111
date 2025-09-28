@@ -1,6 +1,6 @@
 from .ListaSimpleEnlazada import ListaEnlazada
 import xml.etree.ElementTree as ET
-from flask import render_template
+from flask import render_template, Response
 from io import BytesIO
 
 class SimulacionRiego:
@@ -55,7 +55,7 @@ class SimulacionRiego:
                 while actual_dron_asignado:
                     dron = actual_dron_asignado.dato
                     posicion_actual = dron.posicion_actual
-                    
+
                     if dron.posicion_objetivo == None:
                         planta = dron.plantas_a_regar.desencolar()
                         if planta:
@@ -72,7 +72,7 @@ class SimulacionRiego:
                             paso = dron.mover_adelante()
                             dron.pasos.insertar(paso)
                             eventos_segundo.append({"dron": dron.nombre, "accion": paso})
-                        #Mover atras
+                        #Mover atrás
                         elif posicion_actual > posicion_objetivo:
                             paso = dron.mover_atras()
                             dron.pasos.insertar(paso)
@@ -117,7 +117,7 @@ class SimulacionRiego:
                 actual_paso = actual_paso.siguiente
             actual_dron = actual_dron.siguiente
 
-    def generar_xml_salida(self, nombre_invernadero, nombre_plan, ruta_salida):
+    def generar_xml_salida(self, nombre_invernadero, nombre_plan):
         root = ET.Element("datosSalida")
         lista_invernaderos_elem = ET.SubElement(root, "listaInvernaderos")
 
@@ -163,11 +163,22 @@ class SimulacionRiego:
                     "accion": evento["accion"]
                 })
 
+        # --- devolver como descarga en memoria (NO guardar en disco) ---
+        buffer = BytesIO()
         tree = ET.ElementTree(root)
-        tree.write(ruta_salida, encoding="utf-8", xml_declaration=True)
+        tree.write(buffer, encoding="utf-8", xml_declaration=True)
+        buffer.seek(0)
+
+        from flask import Response
+        return Response(
+            buffer,
+            mimetype="application/xml",
+            headers={"Content-Disposition": f"attachment; filename=salida_{nombre_plan}.xml"}
+        )
+
 
     def generar_html_reporte(self, nombre_invernadero, nombre_plan, ruta_salida):
-        #métricas globales
+        # métricas globales
         tiempo_total = max((tick["segundo"] for tick in self.linea_tiempo), default=0)
         agua_total = 0
         fertilizante_total = 0
@@ -197,34 +208,27 @@ class SimulacionRiego:
 
         dron_nombres = [d["nombre"] for d in drones]
 
-        #Post-procesar linea_tiempo para insertar FIN
-        #Guardamos el último segundo en que actuó cada dron
+        # --- mismo procesamiento de FIN que ya tenías ---
         ultimo_evento = {d: 0 for d in dron_nombres}
         for tick in self.linea_tiempo:
             for evento in tick["eventos"]:
                 ultimo_evento[evento["dron"]] = tick["segundo"]
 
-        #Ahora creamos un mapa de segundo en que debe aparecer FIN
         fin_por_dron = {d: ultimo_evento[d] + 1 for d in dron_nombres}
 
-        #Recorremos los segundos hasta el maximo + 1 y construimos nueva linea
         nueva_linea_tiempo = []
-        for s in range(1, tiempo_total + 2):  # +1 para permitir los FIN
+        for s in range(1, tiempo_total + 2):
             tick = {"segundo": s, "eventos": []}
-            # Copiamos eventos normales
             for e in [e for t in self.linea_tiempo if t["segundo"] == s for e in t["eventos"]]:
                 tick["eventos"].append(e)
-            # Agregamos FIN si corresponde
             for d in dron_nombres:
                 if s == fin_por_dron[d]:
                     tick["eventos"].append({"dron": d, "accion": "FIN"})
-            # Guardamos solo si hay eventos
             if tick["eventos"]:
                 nueva_linea_tiempo.append(tick)
 
         self.linea_tiempo = nueva_linea_tiempo
 
-        #render del HTML con Jinja
         contenido = render_template(
             "reporte.html",
             invernadero_nombre=nombre_invernadero,
@@ -237,6 +241,7 @@ class SimulacionRiego:
             linea_tiempo=self.linea_tiempo
         )
 
+        # --- este sí lo guardamos en disco ---
         with open(ruta_salida, "w", encoding="utf-8") as f:
             f.write(contenido)
 
