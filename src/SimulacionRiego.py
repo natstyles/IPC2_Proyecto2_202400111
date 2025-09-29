@@ -12,6 +12,7 @@ class SimulacionRiego:
         self.lista_drones_asignados = invernadero.lista_drones_asignados
         self.lista_plantas_a_regar = ListaEnlazada()
         self.linea_tiempo = []
+        self.invernadero = invernadero
 
     def inicializar_datos_drones(self):
         actual_dron_asignado = self.lista_drones_asignados.primero
@@ -249,20 +250,35 @@ class SimulacionRiego:
 
         print(f"Reporte HTML generado en: {ruta_salida}")
 
-    def generar_reporte_tda(self, nombre_archivo):
-        import graphviz, os
-        dot = graphviz.Digraph()
+    def generar_reporte_tda(self, nombre_archivo, tiempo=None):
+        from graphviz import Digraph
+        import os
 
-        # ejemplo sencillo: todas las plantas encoladas
-        actual = self.lista_plantas_a_regar.primero
-        while actual:
-            planta = actual.dato
-            dot.node(f"H{planta.hilera}-P{planta.posicion}", f"H{planta.hilera}-P{planta.posicion}")
-            if actual.siguiente:
-                sig = actual.siguiente.dato
-                dot.edge(f"H{planta.hilera}-P{planta.posicion}", f"H{sig.hilera}-P{sig.posicion}")
-            actual = actual.siguiente
+        dot = Digraph(comment="Reporte TDA")
+        dot.attr(rankdir="TB")
 
+        for dron in self.lista_drones_asignados:
+            actual = dron.pasos.primero
+            anterior = None
+            paso_actual = 1
+
+            while actual:
+                #Si se pasa tiempo, cortamos en ese punto
+                if tiempo is not None and paso_actual > tiempo:
+                    break
+
+                nodo = f"{dron.nombre}_{paso_actual}"
+                dot.node(nodo, actual.dato)
+
+                if anterior:
+                    dot.edge(anterior, nodo)
+
+                anterior = nodo
+                actual = actual.siguiente
+                paso_actual += 1
+
+        # Guardamos en uploads
         ruta = os.path.join("uploads", nombre_archivo)
         dot.render(ruta, format="png", cleanup=True)
+
         return ruta + ".png"

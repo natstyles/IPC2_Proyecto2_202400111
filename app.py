@@ -131,16 +131,37 @@ def descargar_archivo(filename):
 
 @app.route("/tda/<int:numero_plan>")
 def reporte_tda(numero_plan):
-    global ultima_simulacion, ultimo_invernadero, ultimo_plan, ultimo_plan_numero
+    global ultima_simulacion
+
+    if not ultima_simulacion:
+        return render_template("error.html", titulo="Error", mensaje="No hay simulación cargada.")
+
+    ruta_img = ultima_simulacion.generar_reporte_tda(f"tda_plan{numero_plan}.png")
+    return render_template(
+        "reporte_tda.html",
+        imagen=os.path.basename(ruta_img),
+        plan_numero=numero_plan,
+        tiempo=0
+    )
+
+@app.route("/tda/<int:numero_plan>/tiempo", methods=["POST"])
+def reporte_tda_tiempo(numero_plan):
+    global ultima_simulacion, ultimo_invernadero, ultimo_plan
 
     if not ultima_simulacion or not ultimo_invernadero or not ultimo_plan:
         return render_template("error.html", titulo="Error", mensaje="No hay simulación cargada.")
 
-    # Usamos la última simulación ya ejecutada
-    ruta_img = ultima_simulacion.generar_reporte_tda(f"tda_plan{numero_plan}.png")
+    # Tomamos el valor desde el formulario
+    tiempo = int(request.form.get("tiempo", 0))
 
-    return render_template("reporte_tda.html", imagen=os.path.basename(ruta_img))
+    ruta_img = ultima_simulacion.generar_reporte_tda(f"tda_plan{numero_plan}_t{tiempo}.png", tiempo)
 
+    return render_template(
+        "reporte_tda.html",
+        imagen=os.path.basename(ruta_img),
+        plan_numero=numero_plan,
+        tiempo=tiempo
+    )
 
 #Ejecutar servidor
 if __name__ == "__main__":
