@@ -255,7 +255,10 @@ class SimulacionRiego:
         import os
 
         dot = Digraph(comment="Reporte TDA")
-        dot.attr(rankdir="TB")
+        dot.attr(rankdir="TB", bgcolor="transparent")
+
+        dot.attr('node', shape='ellipse', fontcolor='white', color='#00bbf9')
+        dot.attr('edge', color='#00bbf9', fontcolor='white')
 
         for dron in self.lista_drones_asignados:
             actual = dron.pasos.primero
@@ -279,6 +282,6 @@ class SimulacionRiego:
 
         # Guardamos en uploads
         ruta = os.path.join("uploads", nombre_archivo)
-        dot.render(ruta, format="png", cleanup=True)
+        dot.render(ruta, format="svg", cleanup=True)
 
-        return ruta + ".png"
+        return ruta + ".svg"

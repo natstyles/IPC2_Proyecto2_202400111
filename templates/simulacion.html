@@ -1,8 +1,7 @@
 {% extends "base.html" %}
 
 {% block contenido %}
-<div style="text-align:center; padding: 2rem;">
-    <h3>Nueva Simulación</h3>
+<div style="text-align:center; padding: 2rem; background-color: #6666661c; border-radius: 15px;">
 
     <!-- Form para cargar XML -->
     <form action="{{ url_for('cargar_archivo') }}" method="POST" enctype="multipart/form-data" style="margin-top:2rem;">

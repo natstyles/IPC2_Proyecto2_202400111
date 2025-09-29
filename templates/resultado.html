@@ -2,8 +2,6 @@
 
 {% block contenido %}
 <div class="resultado-container">
-    <h2>Resultado de Simulación</h2>
-
     <p><strong>Invernadero:</strong> {{ invernadero.nombre }}</p>
     <p><strong>Plan de riego:</strong> {{ plan_nombre }}</p>
     <p><strong>Tiempo total:</strong> {{ tiempo_total }} segundos</p>
@@ -38,26 +36,30 @@
         <p style="color:#666; text-align:center;">No hay drones registrados.</p>
     {% endfor %}
 
-        <div class="card p-3 mt-3">
-        <h5>Archivos de salida</h5>
-        <!-- Descargar XML del plan -->
-        <a href="{{ url_for('descargar_xml') }}" class="btn btn-success">
-            Descargar XML del plan
-        </a>
-        <!-- Descargar XML Global -->
-        <a href="{{ url_for('descargar_xml_global') }}" class="btn btn-warning">
-            Descargar XML Global
-        </a>
-        <!-- Ver reporte en navegador -->
-        <a href="{{ url_for('ver_archivo', filename=reporte) }}" class="btn btn-success" target="_blank">
-            Ver Reporte HTML
-        </a>
-        <!-- Ver reporte del TDA -->
-        <a href="{{ url_for('reporte_tda', numero_plan=plan_numero) }}" class="btn btn-info">
-            Ver reporte de TDA (Graphviz)
-        </a>
-    </div>
+    <br>
 
+    <div class="card p-3 mt-3">
+        <center>
+            <h4 style="font-size: 20px;">Archivos de salida</h4>
+            <br>
+            <!-- Descargar XML del plan -->
+            <a href="{{ url_for('descargar_xml') }}" class="btn btn-spaced">
+                Descargar XML del plan
+            </a>
+            <!-- Descargar XML Global -->
+            <a href="{{ url_for('descargar_xml_global') }}" class="btn btn-spaced">
+                Descargar XML Global
+            </a>
+            <!-- Ver reporte en navegador -->
+            <a href="{{ url_for('ver_archivo', filename=reporte) }}" class="btn btn-spaced" target="_blank">
+                Ver Reporte HTML
+            </a>
+            <!-- Ver reporte del TDA -->
+            <a href="{{ url_for('reporte_tda', numero_plan=plan_numero) }}" class="btn btn-spaced">
+                Ver reporte de TDA (Graphviz)
+            </a>
+        </center>
+    </div>
 
     <div style="margin-top: 2rem; text-align: center;">
         <a href="{{ url_for('inicio') }}" class="btn" style="background-color: #6c757d;">

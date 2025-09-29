@@ -7,18 +7,21 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-    <header>
-        <div class="container">
+    <!-- Navbar -->
+    <header class="navbar">
+        <div class="container1 nav-container">
+            <h1 class="logo">Sistema de Riego</h1>
             <nav>
-                <h1>Sistema de Riego</h1>
                 <a href="{{ url_for('inicio') }}">Inicio</a>
                 <a href="{{ url_for('simulacion') }}">Simulación</a>
+                <a href="{{ url_for('descargar_xml_global') }}">XML Global</a>
                 <a href="{{ url_for('ayuda') }}">Ayuda</a>
             </nav>
         </div>
     </header>
 
-    <div class="container">
+    <!-- Contenido -->
+    <div class="container1">
         <main>
             {% if titulo %}
             <h2 class="page-title">{{ titulo }}</h2>
