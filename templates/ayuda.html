@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block contenido %}
+<div class="container mt-4">
+    <div class="card shadow p-4">
+        <div class="mb-4">
+            <h4>Información del estudiante</h4>
+            <p><strong>Nombre:</strong> Richard Steven Arizandieta Yol</p>
+            <p><strong>Carnet:</strong> 202400111</p>
+        </div>
+        <br>
+        <div class="mb-4">
+            <h4>Acerca de la aplicación</h4>
+            <p>
+                Esta aplicación web simula el proceso de riego y aplicación de fertilizante 
+                automatizado en invernaderos. Permite cargar configuraciones desde archivos 
+                XML, ejecutar planes de riego y generar reportes en HTML, XML y gráficos 
+                representativos del estado de los TDAs (Graphviz).
+            </p>
+        </div>
+        <br>
+        <div class="mb-4">
+            <h4>Documentación</h4>
+            <p>
+                Puedes consultar la documentación completa del proyecto en el siguiente botón:
+            </p>
+            <br>
+            <center>
+                <a href="https://github.com/natstyles/IPC2_Proyecto2_202400111.git" target="_blank" class="btn btn-info">
+                    Ver Documentación
+                </a>
+            </center>
+        </div>
+    </div>
+    <center>
+        <a href="{{ url_for('inicio') }}" class="btn btn-secondary">Volver al inicio</a>
+    </center>
+</div>
+{% endblock %}

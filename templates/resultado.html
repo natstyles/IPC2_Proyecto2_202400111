@@ -38,21 +38,26 @@
         <p style="color:#666; text-align:center;">No hay drones registrados.</p>
     {% endfor %}
 
-    <div class="card p-3 mt-3">
+        <div class="card p-3 mt-3">
         <h5>Archivos de salida</h5>
-        <!-- Descargar XML -->
+        <!-- Descargar XML del plan -->
         <a href="{{ url_for('descargar_xml') }}" class="btn btn-success">
-            Descargar XML
+            Descargar XML del plan
+        </a>
+        <!-- Descargar XML Global -->
+        <a href="{{ url_for('descargar_xml_global') }}" class="btn btn-warning">
+            Descargar XML Global
         </a>
         <!-- Ver reporte en navegador -->
         <a href="{{ url_for('ver_archivo', filename=reporte) }}" class="btn btn-success" target="_blank">
             Ver Reporte HTML
         </a>
         <!-- Ver reporte del TDA -->
-        <a href="{{ url_for('reporte_tda', numero_plan=plan_numero, tiempo = 0) }}" class="btn btn-info">
+        <a href="{{ url_for('reporte_tda', numero_plan=plan_numero) }}" class="btn btn-info">
             Ver reporte de TDA (Graphviz)
         </a>
     </div>
+
 
     <div style="margin-top: 2rem; text-align: center;">
         <a href="{{ url_for('inicio') }}" class="btn" style="background-color: #6c757d;">

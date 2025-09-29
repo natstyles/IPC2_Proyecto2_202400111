@@ -198,6 +198,17 @@ def reporte_tda_tiempo(numero_plan):
         tiempo=tiempo
     )
 
+@app.route("/ayuda")
+def ayuda():
+    return render_template("ayuda.html", titulo="Ayuda")
+
+@app.route("/descargar_xml_global")
+def descargar_xml_global():
+    global sistema_global
+    if not sistema_global:
+        return render_template("error.html", titulo="Error", mensaje="No hay archivo cargado.")
+
+    return sistema_global.generar_xml_global()
 
 #Ejecutar servidor
 if __name__ == "__main__":

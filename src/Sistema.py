@@ -5,6 +5,8 @@ from .Dron import Dron
 from .Planta import Planta
 from .PlanRiego import PlanRiego
 from .Invernadero import Invernadero
+from flask import Response
+import xml.etree.cElementTree as ET
 
 class Sistema:
     def __init__(self):
@@ -111,3 +113,45 @@ class Sistema:
                 return None  #La posición no existe
             plan_riego_actual = plan_riego_actual.siguiente
         return plan_riego_actual.dato if plan_riego_actual else None
+    
+    def generar_xml_global(self):
+        # Nodo raíz
+        root = ET.Element("Invernaderos")
+
+        # Recorremos todos los invernaderos
+        invernadero_actual = self.lista_invernaderos.primero
+        while invernadero_actual:
+            inv = invernadero_actual.dato
+            inv_elem = ET.SubElement(root, "Invernadero", nombre=inv.nombre)
+
+            # Recorremos planes de riego
+            plan_actual = inv.lista_planes_riego.primero
+            contador = 1
+            while plan_actual:
+                plan = plan_actual.dato
+                plan_elem = ET.SubElement(inv_elem, "PlanRiego", numero=str(contador), nombre=plan.nombre)
+
+                # Agregamos lista de drones
+                drones_elem = ET.SubElement(plan_elem, "Drones")
+                dron_actual = inv.lista_drones_asignados.primero
+                while dron_actual:
+                    dron = dron_actual.dato
+                    dron_elem = ET.SubElement(drones_elem, "Dron", nombre=dron.nombre, hilera=str(dron.hilera_asignada))
+                    ET.SubElement(dron_elem, "AguaUsada").text = str(dron.litros_agua_usados)
+                    ET.SubElement(dron_elem, "FertilizanteUsado").text = str(dron.gramos_fertilizante_usados)
+                    dron_actual = dron_actual.siguiente
+
+                contador += 1
+                plan_actual = plan_actual.siguiente
+
+            invernadero_actual = invernadero_actual.siguiente
+
+        # Convertimos el XML en string bonito
+        xml_str = ET.tostring(root, encoding="utf-8")
+
+        # Devolvemos como archivo descargable en Flask
+        return Response(
+            xml_str,
+            mimetype="application/xml",
+            headers={"Content-Disposition": "attachment;filename=Reporte_Global.xml"}
+        )
