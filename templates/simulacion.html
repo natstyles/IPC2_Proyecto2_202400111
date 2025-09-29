@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% block contenido %}
+<div style="text-align:center; padding: 2rem;">
+    <h3>Nueva Simulación</h3>
+
+    <!-- Form para cargar XML -->
+    <form action="{{ url_for('cargar_archivo') }}" method="POST" enctype="multipart/form-data" style="margin-top:2rem;">
+        <div style="margin-bottom:1.5rem;">
+            <label for="archivo">Selecciona archivo XML:</label>
+            <input type="file" id="archivo" name="archivo" required>
+        </div>
+        <button type="submit" class="btn">Cargar Archivo</button>
+    </form>
+
+    {% if invernaderos %}
+    <!-- Form para ejecutar simulación -->
+    <form action="{{ url_for('simulacion') }}" method="POST" style="margin-top:2rem;">
+        <!-- Selección de invernadero -->
+        <div style="margin-bottom:1.5rem;">
+            <label for="invernadero">Selecciona invernadero:</label>
+            <select id="invernadero" name="invernadero" required>
+                {% for inv in invernaderos %}
+                    <option value="{{ inv.id }}">{{ inv.nombre }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <!-- Selección de plan -->
+        <div style="margin-bottom:1.5rem;">
+            <label for="plan">Selecciona plan de riego:</label>
+            <select id="plan" name="plan" required>
+                {% for plan_id, plan_nombre in invernaderos[0].planes %}
+                    <option value="{{ plan_id }}">{{ plan_nombre }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <button type="submit" class="btn">Ejecutar Simulación</button>
+    </form>
+    {% endif %}
+</div>
+{% endblock %}

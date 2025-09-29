@@ -15,6 +15,7 @@ ultima_simulacion = None
 ultimo_invernadero = None
 ultimo_plan = None
 ultimo_plan_numero = None
+sistema_global = None  # Guardamos el sistema cargado para reutilizarlo
 
 def obtener_drones_lista(lista_drones):
     #Convierte lista enlazada de drones a lista normal
@@ -42,28 +43,20 @@ def inicio():
 
 @app.route("/simulacion", methods=["GET", "POST"])
 def simulacion():
-    global ultima_simulacion, ultimo_invernadero, ultimo_plan, ultimo_plan_numero
+    global ultima_simulacion, ultimo_invernadero, ultimo_plan, ultimo_plan_numero, sistema_global
 
     if request.method == "POST":
-        archivo = request.files["archivo"]
-        numero_plan = int(request.form["plan"]) #Capturamos el plan elegido
+        invernadero_id = int(request.form["invernadero"])
+        numero_plan = int(request.form["plan"])
 
-        if archivo.filename == "":
-            return render_template("error.html", titulo="Error", mensaje="No se seleccionó archivo")
+        if not sistema_global:
+            return render_template("error.html", titulo="Error", mensaje="Primero carga un archivo XML.")
 
-        #Guardamos el archivo subido
-        ruta_archivo = os.path.join(app.config["UPLOAD_FOLDER"], archivo.filename)
-        archivo.save(ruta_archivo)
-
-        #Procesar archivo
-        sistema = Sistema()
-        sistema.leer_archivo(ruta_archivo)
-
-        #De momento tomamos el primer invernadero
-        invernadero = sistema.obtener_invernadero(1)
+        #Obtenemos el invernadero seleccionado
+        invernadero = sistema_global.obtener_invernadero(invernadero_id)
 
         #Obtenemos el plan seleccionado
-        plan = sistema.obtener_plan_riego(numero_plan, invernadero)
+        plan = sistema_global.obtener_plan_riego(numero_plan, invernadero)
 
         #Ejecutamos simulación
         simulacion = SimulacionRiego(plan, invernadero)
@@ -105,8 +98,48 @@ def simulacion():
             plan_numero=numero_plan
         )
 
-    #Si es GET → mostrar formulario
-    return render_template("simulacion.html", titulo="Nueva Simulación")
+    #Si es GET → mostrar formulario vacío (sin invernaderos cargados aún)
+    return render_template("simulacion.html", titulo="Nueva Simulación", invernaderos=None)
+
+
+@app.route("/cargar_archivo", methods=["POST"])
+def cargar_archivo():
+    global sistema_global
+
+    archivo = request.files["archivo"]
+    if archivo.filename == "":
+        return render_template("error.html", titulo="Error", mensaje="No se seleccionó archivo")
+
+    #Guardamos el archivo subido
+    ruta_archivo = os.path.join(app.config["UPLOAD_FOLDER"], archivo.filename)
+    archivo.save(ruta_archivo)
+
+    #Procesar archivo
+    sistema = Sistema()
+    sistema.leer_archivo(ruta_archivo)
+    sistema_global = sistema  # Guardamos el sistema para usarlo en /simulacion
+
+    # Preparamos la lista de invernaderos y sus planes (usando la lista enlazada correcta)
+    invernaderos = []
+    idx = 1
+    actual_inv = sistema.lista_invernaderos.primero
+    while actual_inv:
+        inv = actual_inv.dato
+
+        # Recorrer la lista enlazada de planes del invernadero
+        planes = []
+        i = 1
+        actual_plan = inv.lista_planes_riego.primero
+        while actual_plan:
+            planes.append((i, actual_plan.dato.nombre))
+            actual_plan = actual_plan.siguiente
+            i += 1
+
+        invernaderos.append({"id": idx, "nombre": inv.nombre, "planes": planes})
+        idx += 1
+        actual_inv = actual_inv.siguiente
+
+    return render_template("simulacion.html", titulo="Nueva Simulación", invernaderos=invernaderos)
 
 
 @app.route("/uploads/<path:filename>")
@@ -129,6 +162,7 @@ def descargar_archivo(filename):
     #Fuerza descarga de archivos guardados
     return send_from_directory(app.config["UPLOAD_FOLDER"], filename, as_attachment=True)
 
+
 @app.route("/tda/<int:numero_plan>")
 def reporte_tda(numero_plan):
     global ultima_simulacion
@@ -143,6 +177,7 @@ def reporte_tda(numero_plan):
         plan_numero=numero_plan,
         tiempo=0
     )
+
 
 @app.route("/tda/<int:numero_plan>/tiempo", methods=["POST"])
 def reporte_tda_tiempo(numero_plan):
@@ -162,6 +197,7 @@ def reporte_tda_tiempo(numero_plan):
         plan_numero=numero_plan,
         tiempo=tiempo
     )
+
 
 #Ejecutar servidor
 if __name__ == "__main__":
