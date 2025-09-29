@@ -10,10 +10,10 @@
     <!-- Navbar -->
     <header class="navbar">
         <div class="container1 nav-container">
-            <h1 class="logo">Sistema de Riego</h1>
+            <a href="{{ url_for('inicio') }}"><h1 class="logo">Sistema de Riego</h1></a>
             <nav>
                 <a href="{{ url_for('inicio') }}">Inicio</a>
-                <a href="{{ url_for('simulacion') }}">Simulación</a>
+                <a href="{{ url_for('cargar_archivo') }}">Simulación</a>
                 <a href="{{ url_for('descargar_xml_global') }}">XML Global</a>
                 <a href="{{ url_for('ayuda') }}">Ayuda</a>
             </nav>

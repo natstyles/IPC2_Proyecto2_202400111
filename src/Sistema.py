@@ -11,27 +11,31 @@ import xml.etree.cElementTree as ET
 class Sistema:
     def __init__(self):
         self.lista_invernaderos = ListaEnlazada()
+        self.lista_drones = ListaEnlazada()  # Guardar los drones globales
 
     def leer_archivo(self, ruta_archivo):
         dom = parse(ruta_archivo)
 
-        #DRONES
-        lista_drones = ListaEnlazada()
-        drones = dom.getElementsByTagName('dron')
+        # DRONES GLOBALES
+        self.lista_drones = ListaEnlazada()
+        listado_drones_root = dom.getElementsByTagName("listaDrones")[0]
+        drones = listado_drones_root.getElementsByTagName("dron")
+
         for dron in drones:
             id = int(dron.getAttribute('id'))
             nombre = dron.getAttribute('nombre')
             nuevo_dron = Dron(id, nombre, None, 0, None, 0, 0, Cola(), ListaEnlazada())
-            lista_drones.insertar(nuevo_dron)
+            self.lista_drones.insertar(nuevo_dron)
+            print(f"[DEBUG] Dron leído -> ID: {id}, Nombre: {nombre}")
 
-        #INVERNADEROS
+        # INVERNADEROS
         lista_invernaderos = dom.getElementsByTagName('invernadero')
         for invernadero in lista_invernaderos:
             nombre_invernadero = invernadero.getAttribute('nombre')
             numero_hileras = int(invernadero.getElementsByTagName('numeroHileras')[0].firstChild.data)
             plantas_x_hilera = int(invernadero.getElementsByTagName('plantasXhilera')[0].firstChild.data)
 
-            #PLANTAS
+            # PLANTAS
             lista_plantas = ListaEnlazada()
             plantas = invernadero.getElementsByTagName('planta')
             for planta in plantas:
@@ -44,20 +48,45 @@ class Sistema:
                 nueva_planta = Planta(hilera, posicion, litros_agua, gramos_fertilizante, tipo_planta)
                 lista_plantas.insertar(nueva_planta)
 
-            #DRONES ASIGNADOS
+            #ASIGNACIÓN DE DRONES
             lista_drones_asignados = ListaEnlazada()
-            asignacion_drones = invernadero.getElementsByTagName('dron')
-            for dron in asignacion_drones:
-                id = int(dron.getAttribute('id'))
-                hilera = int(dron.getAttribute('hilera'))
+            asignacion_drones_root = invernadero.getElementsByTagName("asignacionDrones")[0]
+            asignacion_drones = asignacion_drones_root.getElementsByTagName("dron")
 
-                indice = lista_drones.buscar_indice(id)
-                dron = lista_drones.obtener(indice)
-                dron.hilera_asignada = hilera
+            for dron_node in asignacion_drones:
+                id_dron = int(dron_node.getAttribute('id'))
+                hilera = int(dron_node.getAttribute('hilera'))
 
-                lista_drones_asignados.insertar(dron)
+                # Buscar el dron en la lista global por id
+                actual = self.lista_drones.primero
+                dron_origen = None
+                while actual:
+                    if getattr(actual.dato, "id", None) == id_dron:
+                        dron_origen = actual.dato
+                        break
+                    actual = actual.siguiente
 
-            #PLANES DE RIEGO
+                if dron_origen is None:
+                    print(f"[ERROR] No se encontró dron con ID {id_dron} en lista global")
+                    continue
+
+                #CLONAR
+                dron_copia = Dron(
+                    dron_origen.id,
+                    dron_origen.nombre,
+                    hilera,
+                    0, 
+                    None,
+                    0,
+                    0,
+                    Cola(),
+                    ListaEnlazada()
+                )
+
+                lista_drones_asignados.insertar(dron_copia)
+                print(f"[DEBUG] Dron asignado (copia) -> {dron_copia.nombre} (ID:{id_dron}) → Hilera {hilera}")
+
+            # PLANES DE RIEGO
             lista_planes_riego = ListaEnlazada()
             planes_riego = invernadero.getElementsByTagName('plan')
             for plan_riego in planes_riego:
@@ -66,7 +95,7 @@ class Sistema:
                 nuevo_plan_riego = PlanRiego(nombre, secuencia_ubicacion_riego)
                 lista_planes_riego.insertar(nuevo_plan_riego)
 
-            #CREAR INVERNADERO
+            # CREAR INVERNADERO
             nuevo_invernadero = Invernadero(
                 nombre_invernadero,
                 numero_hileras,
@@ -110,28 +139,21 @@ class Sistema:
         plan_riego_actual = invernadero.lista_planes_riego.primero
         for _ in range(1, posicion):
             if plan_riego_actual is None:
-                return None  #La posición no existe
+                return None
             plan_riego_actual = plan_riego_actual.siguiente
         return plan_riego_actual.dato if plan_riego_actual else None
     
     def generar_xml_global(self):
-        # Nodo raíz
         root = ET.Element("Invernaderos")
-
-        # Recorremos todos los invernaderos
         invernadero_actual = self.lista_invernaderos.primero
         while invernadero_actual:
             inv = invernadero_actual.dato
             inv_elem = ET.SubElement(root, "Invernadero", nombre=inv.nombre)
-
-            # Recorremos planes de riego
             plan_actual = inv.lista_planes_riego.primero
             contador = 1
             while plan_actual:
                 plan = plan_actual.dato
                 plan_elem = ET.SubElement(inv_elem, "PlanRiego", numero=str(contador), nombre=plan.nombre)
-
-                # Agregamos lista de drones
                 drones_elem = ET.SubElement(plan_elem, "Drones")
                 dron_actual = inv.lista_drones_asignados.primero
                 while dron_actual:
@@ -140,18 +162,9 @@ class Sistema:
                     ET.SubElement(dron_elem, "AguaUsada").text = str(dron.litros_agua_usados)
                     ET.SubElement(dron_elem, "FertilizanteUsado").text = str(dron.gramos_fertilizante_usados)
                     dron_actual = dron_actual.siguiente
-
                 contador += 1
                 plan_actual = plan_actual.siguiente
-
             invernadero_actual = invernadero_actual.siguiente
 
-        # Convertimos el XML en string bonito
         xml_str = ET.tostring(root, encoding="utf-8")
-
-        # Devolvemos como archivo descargable en Flask
-        return Response(
-            xml_str,
-            mimetype="application/xml",
-            headers={"Content-Disposition": "attachment;filename=Reporte_Global.xml"}
-        )
+        return Response(xml_str, mimetype="application/xml", headers={"Content-Disposition": "attachment;filename=Reporte_Global.xml"})

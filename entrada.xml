@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuracion>
+    <listaDrones>
+        <dron id="1" nombre="DR01"/>
+        <dron id="2" nombre="DR02"/>
+        <dron id="3" nombre="DR03"/>
+        <dron id="4" nombre="DR04"/>
+    </listaDrones>
+    <listaInvernaderos>
+        <invernadero nombre="Invernadero San Marcos">
+            <numeroHileras>4</numeroHileras>
+            <plantasXhilera>3</plantasXhilera>
+            <listaPlantas>
+                <planta hilera="1" posicion="1" litrosAgua="3" gramosFertilizante="200">matilisguate</planta>
+                <planta hilera="1" posicion="2" litrosAgua="4" gramosFertilizante="100">ciprés</planta>
+                <planta hilera="1" posicion="3" litrosAgua="3" gramosFertilizante="200">matilisguate</planta>
+
+                <planta hilera="2" posicion="1" litrosAgua="1" gramosFertilizante="25">ciprés italiano</planta>
+                <planta hilera="2" posicion="2" litrosAgua="2" gramosFertilizante="125">ciprés de tarout</planta>
+                <planta hilera="2" posicion="3" litrosAgua="1" gramosFertilizante="25">ciprés italiano</planta>
+
+                <planta hilera="3" posicion="1" litrosAgua="3" gramosFertilizante="200">matilisguate</planta>
+                <planta hilera="3" posicion="2" litrosAgua="4" gramosFertilizante="100">ciprés</planta>
+                <planta hilera="3" posicion="3" litrosAgua="3" gramosFertilizante="200">matilisguate</planta>
+
+                <planta hilera="4" posicion="1" litrosAgua="1" gramosFertilizante="25">ciprés italiano</planta>
+                <planta hilera="4" posicion="2" litrosAgua="2" gramosFertilizante="125">ciprés de tarout</planta>
+                <planta hilera="4" posicion="3" litrosAgua="1" gramosFertilizante="25">ciprés italiano</planta>
+            </listaPlantas>
+            <asignacionDrones>
+                <dron id="1" hilera="1"/>
+                <dron id="2" hilera="2"/>
+                <dron id="3" hilera="3"/>
+                <dron id="4" hilera="4"/>
+            </asignacionDrones>
+            <planesRiego>
+                <plan nombre="Dia 1">H4-P1, H3-P2, H2-P3, H1-P3</plan>
+                <plan nombre="Dia 2">H1-P2, H4-P2, H2-P3, H3-P3, H2-P1, H3-P1</plan>
+                <plan nombre="Dia 3">H2-P1, H4-P1, H1-P2, H3-P2, H2-P2, H4-P2, H1-P2, H3-P2, H2-P3, H4-P3</plan>
+            </planesRiego>
+        </invernadero>
+        <invernadero nombre="Invernadero Guatemala">
+            <numeroHileras>2</numeroHileras>
+            <plantasXhilera>10</plantasXhilera>
+            <listaPlantas>
+                <planta hilera="1" posicion="1" litrosAgua="7" gramosFertilizante="75">pino</planta>
+                <planta hilera="1" posicion="2" litrosAgua="5" gramosFertilizante="50">ciprés italiano</planta>
+                <planta hilera="1" posicion="3" litrosAgua="2" gramosFertilizante="25">ciprés de tarout</planta>
+                <planta hilera="1" posicion="4" litrosAgua="7" gramosFertilizante="75">pino</planta>
+                <planta hilera="1" posicion="5" litrosAgua="5" gramosFertilizante="50">ciprés italiano</planta>
+                <planta hilera="1" posicion="6" litrosAgua="2" gramosFertilizante="25">ciprés de tarout</planta>
+                <planta hilera="1" posicion="7" litrosAgua="7" gramosFertilizante="75">pino</planta>
+                <planta hilera="1" posicion="8" litrosAgua="5" gramosFertilizante="50">ciprés italiano</planta>
+                <planta hilera="1" posicion="9" litrosAgua="2" gramosFertilizante="25">ciprés de tarout</planta>
+                <planta hilera="1" posicion="10" litrosAgua="7" gramosFertilizante="75">pino</planta>
+
+                <planta hilera="2" posicion="1" litrosAgua="2" gramosFertilizante="100">limón</planta>
+                <planta hilera="2" posicion="2" litrosAgua="1" gramosFertilizante="200">naranja</planta>
+                <planta hilera="2" posicion="3" litrosAgua="2" gramosFertilizante="100">limón</planta>
+                <planta hilera="2" posicion="4" litrosAgua="1" gramosFertilizante="200">naranja</planta>
+                <planta hilera="2" posicion="5" litrosAgua="2" gramosFertilizante="100">limón</planta>
+                <planta hilera="2" posicion="6" litrosAgua="1" gramosFertilizante="200">naranja</planta>
+                <planta hilera="2" posicion="7" litrosAgua="2" gramosFertilizante="100">limón</planta>
+                <planta hilera="2" posicion="8" litrosAgua="1" gramosFertilizante="200">naranja</planta>
+                <planta hilera="2" posicion="9" litrosAgua="2" gramosFertilizante="100">limón</planta>
+                <planta hilera="2" posicion="10" litrosAgua="1" gramosFertilizante="200">naranja</planta>
+            </listaPlantas>
+            <asignacionDrones>
+                <dron id="2" hilera="1"/>
+                <dron id="4" hilera="2"/>
+            </asignacionDrones>
+            <planesRiego>
+                <plan nombre="Final">
+                    H1-P1, H2-P1, H1-P2, H2-P2, H1-P3, H2-P3, H1-P4, H2-P4, H1-P5, H2-P5, H1-P6, H2-P6, 
+                    H1-P7, H2-P7, H1-P8, H2-P8, H1-P9, H2-P9, H1-P10, H2-P10
+                </plan>
+            </planesRiego>
+        </invernadero>
+    </listaInvernaderos>
+</configuracion>

@@ -66,7 +66,6 @@ class Cola:
         return self.frente is None
 
     def encolar(self, valor):
-        """Agrega un nuevo elemento al final de la cola"""
         nuevo = Nodo(valor)
         if self.esta_vacia():
             self.frente = nuevo
@@ -77,7 +76,6 @@ class Cola:
         self.tamanio += 1
 
     def desencolar(self):
-        """Saca el elemento al frente de la cola y lo retorna"""
         if self.esta_vacia():
             return None
         valor = self.frente.valor
@@ -88,7 +86,6 @@ class Cola:
         return valor
 
     def ver_frente(self):
-        """Muestra el valor al frente de la cola sin quitarlo"""
         if self.esta_vacia():
             return None
         return self.frente.valor
