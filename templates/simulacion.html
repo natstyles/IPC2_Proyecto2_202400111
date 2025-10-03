@@ -3,24 +3,18 @@
 {% block contenido %}
 <div style="text-align:center; padding: 2rem; background-color: #6666661c; border-radius: 15px;">
 
-    <!-- Form para cargar XML -->
-    <form action="{{ url_for('cargar_archivo') }}" method="POST" enctype="multipart/form-data" style="margin-top:2rem;">
-        <div style="margin-bottom:1.5rem;">
-            <label for="archivo">Selecciona archivo XML:</label>
-            <input type="file" id="archivo" name="archivo" required>
-        </div>
-        <button type="submit" class="btn">Cargar Archivo</button>
-    </form>
-
     {% if invernaderos %}
     <!-- Form para ejecutar simulación -->
     <form action="{{ url_for('simulacion') }}" method="POST" style="margin-top:2rem;">
+        
         <!-- Selección de invernadero -->
         <div style="margin-bottom:1.5rem;">
             <label for="invernadero">Selecciona invernadero:</label>
-            <select id="invernadero" name="invernadero" required>
+            <select id="invernadero" name="invernadero" required onchange="actualizarPlanes()">
                 {% for inv in invernaderos %}
-                    <option value="{{ inv.id }}">{{ inv.nombre }}</option>
+                    <option value="{{ inv.id }}" data-planes='{{ inv.planes | tojson | safe }}'>
+                        {{ inv.nombre }}
+                    </option>
                 {% endfor %}
             </select>
         </div>
@@ -28,15 +22,50 @@
         <!-- Selección de plan -->
         <div style="margin-bottom:1.5rem;">
             <label for="plan">Selecciona plan de riego:</label>
-            <select id="plan" name="plan" required>
-                {% for plan_id, plan_nombre in invernaderos[0].planes %}
-                    <option value="{{ plan_id }}">{{ plan_nombre }}</option>
-                {% endfor %}
-            </select>
+            <select id="plan" name="plan" required></select>
         </div>
 
         <button type="submit" class="btn">Ejecutar Simulación</button>
     </form>
+
+    <script>
+        function actualizarPlanes() {
+            let invernaderoSelect = document.getElementById("invernadero");
+            let planSelect = document.getElementById("plan");
+            planSelect.innerHTML = ""; // limpiar opciones previas
+
+            let dataPlanes = invernaderoSelect.selectedOptions[0].dataset.planes;
+            let planes = [];
+
+            if (dataPlanes) {
+                try {
+                    planes = JSON.parse(dataPlanes);
+                } catch (e) {
+                    console.error("Error parseando planes:", e, dataPlanes);
+                }
+            }
+
+            if (planes.length === 0) {
+                let option = document.createElement("option");
+                option.value = "";
+                option.text = "Sin planes disponibles";
+                planSelect.add(option);
+                return;
+            }
+
+            planes.forEach(function(plan) {
+                let option = document.createElement("option");
+                option.value = plan.id;
+                option.text = plan.nombre;
+                planSelect.add(option);
+            });
+        }
+
+        // Llamar una vez al cargar la página para mostrar los planes del primer invernadero
+        document.addEventListener("DOMContentLoaded", actualizarPlanes);
+    </script>
+    {% else %}
+        <p style="color:red;">Primero debes cargar un archivo XML desde la página de inicio.</p>
     {% endif %}
 </div>
 {% endblock %}

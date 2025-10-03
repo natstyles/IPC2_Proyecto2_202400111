@@ -2,32 +2,37 @@
 
 {% block contenido %}
 
-    <div style="text-align: center; padding: 2rem 0; background-color: #6666661c; border-radius: 15px;">
-        <h3 style="margin-bottom: 1rem;"> Bienvenido al Sistema de Riego</h3>
-        <p style="font-size: 1.1em; margin-bottom: 2rem;">
-            Carga un archivo XML y procesa la simulación de riego con drones.
-        </p>
+<div style="text-align: center; padding: 2rem 0; background-color: #6666661c; border-radius: 15px;">
+    <h3 style="margin-bottom: 1rem;"> Bienvenido al Sistema de Riego</h3>
+    <p style="font-size: 1.1em; margin-bottom: 2rem;">
+        Carga un archivo XML y procesa la simulación de riego con drones.
+    </p>
 
-        <div style="display: flex; gap: 20px; justify-content: center; flex-wrap: wrap;">
-            <div class="card" style="max-width: 300px;">
-                <h4 style="margin-bottom: 1rem;">Nueva Simulación</h4>
-                <p style="margin-bottom: 1rem;">
-                    Sube un archivo XML para iniciar el proceso de simulación de riego.
-                </p>
-                <br>
-                <a href="{{ url_for('simulacion') }}" class="btn">Ir a Simulación</a>
-            </div>
-
-            <div class="card" style="max-width: 300px;">
-                <h4 style="margin-bottom: 1rem;">Tecnologías Usadas</h4>
-                <ul style="text-align: left; margin-bottom: 1rem;">
-                    <li>Python + Flask</li>
-                    <li>Jinja2 (Templates)</li>
-                    <li>HTML y CSS</li>
-                </ul>
-            </div>
+    <div style="display: flex; gap: 20px; justify-content: center; flex-wrap: wrap;">
+        <div class="card" style="max-width: 300px;">
+            <h4 style="margin-bottom: 1rem;">Nueva Simulación</h4>
+            <p style="margin-bottom: 1rem;">
+                Sube un archivo XML para iniciar el proceso de simulación de riego.
+            </p>
+            <br>
+            <!-- Formulario de carga de archivo XML -->
+            <form action="{{ url_for('cargar_archivo') }}" method="POST" enctype="multipart/form-data">
+                <input type="file" name="archivo" required>
+                <br><br>
+                <button type="submit" class="btn">Cargar Archivo</button>
+            </form>
         </div>
-        <br>
+
+        <div class="card" style="max-width: 300px;">
+            <h4 style="margin-bottom: 1rem;">Tecnologías Usadas</h4>
+            <ul style="text-align: left; margin-bottom: 1rem;">
+                <li>Python + Flask</li>
+                <li>Jinja2 (Templates)</li>
+                <li>HTML y CSS</li>
+            </ul>
+        </div>
     </div>
+    <br>
+</div>
 
 {% endblock %}
